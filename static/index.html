@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptShield AI Firewall</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Dark Theme Matching Screenshots */
+            --bg-body: #0B0E14;
+            /* Deepest dark background */
+            --bg-sidebar: #151921;
+            /* Sidebar background */
+            --bg-card: #1C212C;
+            /* Card background */
+            --bg-card-hover: #252B38;
+
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+
+            --border-color: #2D3748;
+
+            --primary-blue: #4F46E5;
+            /* Indigo/Blue similar to UI */
+            --primary-blue-hover: #4338CA;
+
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-orange: #F59E0B;
+
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background: rgba(79, 70, 229, 0.15);
+            color: var(--primary-blue);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+
+        .user-mini {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+
+        .user-mini .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            /* Transparent or subtle background if needed */
+        }
+
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* --- View Containers --- */
+        .view-container {
+            flex: 1;
+            padding: 1rem 2.5rem 2.5rem 2.5rem;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4B5563;
+        }
+
+        /* --- DASHBOARD VIEW --- */
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            color: var(--text-secondary);
+        }
+
+        .stats-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .sparkline-container {
+            height: 50px;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .action-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .btn-action {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--primary-blue);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-action:hover {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .status-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-info h4 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-info span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-success {
+            color: var(--accent-green);
+        }
+
+        .status-success .status-dot {
+            background: var(--accent-green);
+        }
+
+        .status-warning {
+            color: var(--accent-orange);
+        }
+
+        .status-warning .status-dot {
+            background: var(--accent-orange);
+        }
+
+        .status-danger {
+            color: var(--accent-red);
+        }
+
+        .status-danger .status-dot {
+            background: var(--accent-red);
+        }
+
+        /* --- CHAT VIEW --- */
+        #view-chat {
+            display: none;
+            flex-direction: column;
+            padding: 0;
+            height: 100vh;
+        }
+
+        .chat-header {
+            height: 70px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background: var(--bg-body);
+        }
+
+        .chat-history {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            background: var(--bg-body);
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 800px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .message.ai .message-avatar {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .message.user .message-avatar {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .message-bubble {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            border-radius: var(--radius-lg);
+            border-top-left-radius: 4px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .message.user .message-bubble {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+            border-radius: var(--radius-lg);
+            border-top-right-radius: 4px;
+        }
+
+        .chat-input-container {
+            padding: 2rem;
+            background: var(--bg-body);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 1.25rem 4rem 1.25rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- MONITOR VIEW --- */
+        .monitor-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        .monitor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 250px;
+        }
+
+        .feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            max-height: 400px;
+            margin-top: 1rem;
+        }
+
+        .feed-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--border-color);
+        }
+
+        .feed-item.block {
+            border-left-color: var(--accent-red);
+        }
+
+        .feed-item.sanitize {
+            border-left-color: var(--accent-orange);
+        }
+
+        .feed-item.allow {
+            border-left-color: var(--accent-green);
+        }
+
+        /* --- Light Mode Overrides --- */
+        body.light-mode {
+            --bg-body: #F3F4F6;
+            --bg-sidebar: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #F9FAFB;
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+            --border-color: #E5E7EB;
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        body.light-mode .feed-item {
+            background: #F9FAFB;
+        }
+
+        /* Toggle Switch */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        body.light-mode .theme-toggle {
+            background: #F3F4F6;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .bg-red {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .bg-orange {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .bg-green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .feed-prompt {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .feed-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            PromptShield
+        </div>
+
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <span style="font-size: 0.85rem; font-weight: 500;">Dark Mode</span>
+            <div
+                style="width: 36px; height: 20px; background: var(--border-color); border-radius: 99px; position: relative; transition: all 0.3s;">
+                <div id="toggle-dot"
+                    style="width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s; transform: translateX(16px);">
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 0.5rem;">
+            Main Menu</div>
+
+        <a class="nav-link active" onclick="switchView('dashboard')">
+            <span>📊</span> Dashboard
+        </a>
+        <a class="nav-link" onclick="switchView('chat')">
+            <span>💬</span> Chat Interface
+        </a>
+        <a class="nav-link" onclick="switchView('monitor')">
+            <span>📡</span> Live Monitor
+        </a>
+
+        <div
+            style="margin-bottom: 1rem; margin-top: 2rem; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 0.5rem;">
+            Settings</div>
+        <a class="nav-link"><span>⚙️</span> Configuration</a>
+        <a class="nav-link"><span>📜</span> Logs</a>
+
+        <div class="user-mini">
+            <div class="avatar">A</div>
+            <div>
+                <div style="font-weight: 600; font-size: 0.9rem;">Admin User</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">admin@promptshield.ai</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- VIEW 1: DASHBOARD -->
+        <div id="view-dashboard" class="view-container active">
+            <div class="dashboard-header">
+                <h1>Welcome back, Admin</h1>
+                <p>Quick stats with sparkline data visualization</p>
+            </div>
+
+            <!-- Stats with Sparklines -->
+            <div class="stats-grid-container">
+                <div class="stat-card">
+                    <div class="stat-title">Total Requests Today</div>
+                    <div class="stat-value">3,328</div>
+                    <div class="sparkline-container">
+                        <canvas id="chartRequests"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Blocks</div>
+                    <div class="stat-value" style="color: var(--accent-red);">826</div>
+                    <div class="sparkline-container">
+                        <canvas id="chartBlocks"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Sanitized</div>
+                    <div class="stat-value" style="color: var(--accent-green);">3.12%</div>
+                    <div class="sparkline-container">
+                        <canvas id="chartSanitized"></canvas>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Layer 5 (Vector DB)</div>
+                    <div class="stat-value" style="color: var(--primary-blue);" id="l5-stat">Active</div>
+                    <div class="stat-title" style="margin-top:0; font-size: 0.8rem;" id="l5-detail">Pinecone/FAISS</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="action-buttons-grid">
+                <button class="btn-action" onclick="switchView('chat')">[Open Chat Interface]</button>
+                <button class="btn-action" onclick="switchView('monitor')">[Open Live Monitor]</button>
+                <button class="btn-action"
+                    style="background:transparent; color:var(--text-secondary); border-color:var(--border-color);">[Admin
+                    Dashboard]</button>
+                <button class="btn-action"
+                    style="background:transparent; color:var(--text-secondary); border-color:var(--border-color);">[View
+                    Analytics]</button>
+            </div>
+
+            <!-- System Status -->
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; color: var(--text-secondary);">System Status</h3>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Vector Database (L5)</h4>
+                        <span id="l5-status-text">Checking...</span>
+                    </div>
+                    <div class="status-indicator status-success" id="l5-indicator">
+                        <div class="status-dot"></div> Online
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-info">
+                        <h4>Firewall Status</h4>
+                        <span>Defcon Infront</span>
+                    </div>
+                    <div class="status-indicator status-warning">
+                        <div class="status-dot"></div> Warning
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: CHAT INTERFACE -->
+        <div id="view-chat" class="view-container" style="padding: 0;">
+            <div class="chat-header">
+                <div>
+                    <h2 style="font-size: 1.1rem;">Chat Interface</h2>
+                    <span style="font-size: 0.8rem; color: var(--accent-green);">🛡️ Protected</span>
+                </div>
+                <button class="icon-btn">⚙️</button>
+            </div>
+
+            <div class="chat-history" id="chatHistory">
+                <!-- Messages go here -->
+                <div class="message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-bubble">
+                        Hello! I'm your AI assistant protected by PromptShield. How can I help you today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" class="chat-input"
+                        placeholder="Type your message here... (Protected by PromptShield)" autocomplete="off">
+                    <button class="send-btn" id="sendBtn">➤</button>
+                </div>
+                <div style="text-align: center; margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted);">
+                    All messages are monitored and protected by PromptShield AI Firewall
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: MONITOR -->
+        <div id="view-monitor" class="view-container">
+            <h2 style="margin-bottom: 1.5rem;">Live Monitor - Real-time Incident Feed</h2>
+
+            <div class="monitor-layout">
+                <!-- Left Col: Charts & Traffic -->
+                <div style="display:flex; flex-direction:column; gap: 1.5rem;">
+                    <div class="monitor-card">
+                        <h3 class="stat-title">Request Traffic (Last Hour)</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="monitor-card" style="flex:1;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <h3 class="stat-title">Incident Feed</h3>
+                            <div>
+                                <button class="badge"
+                                    style="background:var(--primary-blue); border:none; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem;">All</button>
+                                <button class="badge"
+                                    style="background:transparent; border:1px solid var(--border-color); color:var(--text-secondary); padding:4px 8px; border-radius:4px; font-size:0.75rem;">Blocked</button>
+                            </div>
+                        </div>
+                        <div class="feed-list" id="feedList">
+                            <!-- Items populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Col: Distribution -->
+                <div class="monitor-card">
+                    <h3 class="stat-title">Action Distribution</h3>
+                    <div class="chart-wrapper" style="max-height: 250px; display:flex; justify-content:center;">
+                        <canvas id="distChart"></canvas>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <h3 class="stat-title">Today Statistics</h3>
+                        <div style="margin-top:1rem; display:flex; flex-direction:column; gap:0.5rem;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="color:var(--text-secondary);">Blocked</span>
+                                <span style="color:var(--accent-red); font-weight:700;">826</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="color:var(--text-secondary);">Sanitized</span>
+                                <span style="color:var(--accent-orange); font-weight:700;">104</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="color:var(--text-secondary);">Allowed</span>
+                                <span style="color:var(--accent-green); font-weight:700;">2,398</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Theme Logic ---
+        let isDarkMode = true;
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('light-mode');
+            const dot = document.getElementById('toggle-dot');
+            const text = document.querySelector('.theme-toggle span');
+
+            if (isDarkMode) {
+                dot.style.transform = 'translateX(16px)';
+                text.innerText = 'Dark Mode';
+                document.documentElement.style.setProperty('--bg-body', '#0B0E14');
+                // Re-init charts to update grid colors if needed (omitted for brevity)
+            } else {
+                dot.style.transform = 'translateX(0)';
+                text.innerText = 'Light Mode';
+                document.documentElement.style.setProperty('--bg-body', '#F3F4F6');
+            }
+        }
+
+        // --- Layer 5 Status Check ---
+        async function checkL5Status() {
+            try {
+                const res = await fetch('/healthz');
+                const data = await res.json();
+
+                const l5Text = document.getElementById('l5-status-text');
+                const l5Stat = document.getElementById('l5-stat');
+                const l5Detail = document.getElementById('l5-detail');
+                const indicator = document.getElementById('l5-indicator');
+
+                if (data.status === 'ok') {
+                    // Check if using Pinecone or FAISS
+                    const stats = data.index_stats || {};
+                    const mode = stats.total_vector_count ? 'Active' : 'Ready';
+                    const backend = stats.namespaces ? 'Pinecone Cloud' : 'Local FAISS';
+
+                    l5Text.innerText = backend;
+                    l5Stat.innerText = mode;
+                    l5Detail.innerText = `${backend} (${stats.total_vector_count || 0} vecs)`;
+
+                    indicator.className = 'status-indicator status-success';
+                    indicator.innerHTML = '<div class="status-dot"></div> Online';
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('l5-status-text').innerText = 'Connection Error';
+                document.getElementById('l5-indicator').className = 'status-indicator status-danger';
+                document.getElementById('l5-indicator').innerHTML = '<div class="status-dot"></div> Offline';
+            }
+        }
+
+        // --- Navigation Logic ---
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            // Helper to activate correct link based on text content/icon
+            // (Simplification for demo)
+            const links = document.querySelectorAll('.nav-link');
+            if (viewName === 'dashboard') links[0].classList.add('active');
+            if (viewName === 'chat') links[1].classList.add('active');
+            if (viewName === 'monitor') links[2].classList.add('active');
+
+            document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
+            const view = document.getElementById('view-' + viewName);
+
+            if (viewName === 'chat') {
+                view.style.display = 'flex';
+            } else {
+                view.style.display = 'block';
+                if (viewName === 'dashboard') initSparklines();
+                if (viewName === 'monitor') initMonitorCharts();
+            }
+            view.classList.add('active');
+        }
+
+        // --- Chat Logic ---
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatHistory = document.getElementById('chatHistory');
+        const feedList = document.getElementById('feedList');
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text);
+            chatInput.value = '';
+
+            try {
+                // Mock typing
+                const id = appendMessage('ai', 'Scanning input...', true);
+
+                // API Call
+                const res = await fetch('/api/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': 'AIzaSyAFqsp3OM2f4L4lZVBKYYrWjemeb87hznk' },
+                    body: JSON.stringify({ user_id: 'admin_user', prompt: text })
+                });
+
+                const data = await res.json();
+                document.getElementById(id).remove();
+
+                if (data.decision === 'block' || data.decision === 'flag') {
+                    const blockMsg = `
+                        <div style="color:var(--accent-red); font-weight:700; margin-bottom:0.5rem;">🛑 BLOCKED</div>
+                        <div>${data.reasons.join(', ')}</div>
+                        <div style="font-size:0.8rem; margin-top:0.5rem; color:var(--text-muted);">Score: ${data.score} | L5 Checked: Yes</div>
+                    `;
+                    appendMessage('ai', blockMsg, false, true);
+                    addToFeed('block', 'BLOCKED', text, data.score);
+                } else {
+                    appendMessage('ai', "Input allowed. Processing request...");
+                    addToFeed('allow', 'ALLOWED', text, data.score);
+                }
+            } catch (err) {
+                appendMessage('ai', "Error connecting to firewall.");
+            }
+        }
+
+        function appendMessage(role, html, loading, isHtml) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            let content = isHtml ? html : html.replace(/</g, "&lt;");
+
+            div.innerHTML = `
+                <div class="message-avatar">${role === 'ai' ? '🤖' : '👤'}</div>
+                <div class="message-bubble">${content}</div>
+            `;
+            chatHistory.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth' });
+            return div.id = 'msg-' + Date.now();
+        }
+
+        function addToFeed(type, label, prompt, score) {
+            const item = document.createElement('div');
+            let colorClass = type === 'block' ? 'bg-red' : (type === 'sanitize' ? 'bg-orange' : 'bg-green');
+            item.className = `feed-item ${type}`;
+            item.innerHTML = `
+                <div class="feed-header"><span class="feed-badge ${colorClass}">${label}</span><span class="feed-meta">${new Date().toLocaleTimeString()}</span></div>
+                <div class="feed-prompt">${prompt.substring(0, 60)}...</div>
+                <div class="feed-meta">Score: ${score} | User: admin_user</div>
+            `;
+            feedList.prepend(item);
+        }
+
+        // --- Charts Initialization ---
+        let sparklinesInited = false;
+        function initSparklines() {
+            if (sparklinesInited) return;
+            // Common Config
+            const sparkMsg = {
+                type: 'line',
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } }, elements: { point: { radius: 0 } } }
+            };
+
+            // Render 4 sparklines
+            new Chart(document.getElementById('chartRequests'), { ...sparkMsg, data: { labels: [1, 2, 3, 4, 5], datasets: [{ data: [10, 15, 12, 20, 25], borderColor: '#4F46E5', tension: 0.4 }] } });
+            new Chart(document.getElementById('chartBlocks'), { ...sparkMsg, data: { labels: [1, 2, 3, 4, 5], datasets: [{ data: [5, 8, 3, 10, 12], borderColor: '#EF4444', tension: 0.4 }] } });
+            new Chart(document.getElementById('chartSanitized'), { ...sparkMsg, data: { labels: [1, 2, 3, 4, 5], datasets: [{ data: [2, 3, 2, 4, 3], borderColor: '#10B981', tension: 0.4 }] } });
+            sparklinesInited = true;
+        }
+
+        let monitorInited = false;
+        function initMonitorCharts() {
+            if (monitorInited) return;
+
+            // Traffic Line
+            // Traffic Line
+            new Chart(document.getElementById('trafficChart'), {
+                type: 'line',
+                data: {
+                    labels: ['12:00', '12:10', '12:20', '12:30', '12:40', '12:50'],
+                    datasets: [{
+                        label: 'Requests',
+                        data: [120, 150, 180, 140, 200, 230],
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Blocked',
+                        data: [20, 30, 45, 25, 40, 50],
+                        borderColor: '#EF4444',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: '#2D3748' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Dist Donut
+            new Chart(document.getElementById('distChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Allowed', 'Blocked', 'Sanitized'],
+                    datasets: [{
+                        data: [2398, 826, 104],
+                        backgroundColor: ['#10B981', '#EF4444', '#F59E0B'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            monitorInited = true;
+        }
+
+        // --- Auto Init & L5 Check on Load ---
+        window.addEventListener('load', () => {
+            initSparklines();
+            checkL5Status();
+            addToFeed('block', 'BLOCKED', 'Generate a phishing email...', 0.85);
+            addToFeed('sanitize', 'SANITIZED', 'Tell me how to [REDACTED]...', 0.40);
+        });
+
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // --- Updated sendMessage to show L5 Matches ---
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text);
+            chatInput.value = '';
+
+            try {
+                const id = appendMessage('ai', 'Scanning input...', true);
+
+                // Real API Call
+                const res = await fetch('/api/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': 'AIzaSyAFqsp3OM2f4L4lZVBKYYrWjemeb87hznk' },
+                    body: JSON.stringify({ user_id: 'admin_user', prompt: text })
+                });
+
+                const data = await res.json();
+                document.getElementById(id).remove();
+
+                // --- New UI Logic per User Spec ---
+
+                // Format evidence subtext safely
+                let evidenceText = `Safety: similarity=${data.evidence ? data.evidence.similarity : 'N/A'}`;
+                if (data.evidence && data.evidence.rf_confidence) {
+                    evidenceText += `, anomaly=${data.evidence.rf_confidence}`;
+                }
+                if (data.evidence && data.evidence.rule_id) {
+                    evidenceText += `, rule=${data.evidence.rule_id}`;
+                }
+
+                if (data.decision === 'block' || data.decision === 'flag') {
+                    const blockMsg = `
+                        <div style="color:var(--accent-red); font-weight:700; margin-bottom:0.5rem;">🛑 Blocked for your safety</div>
+                        <div style="margin-bottom:0.5rem; color: #fff;">${data.explanation || "We can't help with that request because it contains instructions that might cause harm."}</div>
+                        <div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted); border-top:1px solid #333; padding-top:4px;">
+                            ${evidenceText}
+                        </div>
+                    `;
+                    appendMessage('ai', blockMsg, false, true);
+                    addToFeed('block', 'BLOCKED', text, data.evidence ? data.evidence.similarity : 0);
+                } else {
+                    // Allowed
+                    const content = data.response
+                        ? escapeHtml(data.response)
+                        : "Input passed safety checks.";
+
+                    const okMsg = `
+                        <div style="color:var(--accent-green); font-weight:600; margin-bottom:0.25rem;">✅ Allowed and Processed</div>
+                        <div style="white-space: pre-wrap; margin-top:0.5rem;">${content}</div>
+                        <div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted); border-top:1px solid #333; padding-top:4px;">
+                            ${evidenceText}
+                        </div>
+                    `;
+                    appendMessage('ai', okMsg, false, true);
+                    addToFeed('allow', 'ALLOWED', text, data.evidence ? data.evidence.similarity : 0);
+                }
+            } catch (err) {
+                console.error(err);
+                appendMessage('ai', "Error connecting to firewall.");
+            }
+        }
+    </script>
+</body>
+
+</html>
