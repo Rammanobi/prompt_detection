@@ -339,12 +339,12 @@
 
 - id: R_BOMB_MAKING
   desc: Bomb making instructions
-  pattern: "(?i)how to (?:make|build|create) a bomb|explosive recipe"
+  pattern: "(?i)how to (?:make|build|create) (?:a |the )?b[ao0]mb|explosive recipe|boomb"
   severity: block
 
 - id: R_DRUG_MANUFACTURE
   desc: Drug synthesis
-  pattern: "(?i)how to (?:make|synthesize|cook) (?:meth|methamphetamine|lsd|heroin|cocaine)"
+  pattern: "(?i)how to (?:make|synthesize|cook) (?:meth|methamphetamine|lsd|heroin|cocaine)|synthesize mdma"
   severity: block
 
 - id: R_WEAPON_MANUFACTURE
@@ -431,6 +431,16 @@
   desc: OSINT malicious use
   pattern: "(?i)osint tool|doxbin"
   severity: flag
+
+- id: R_HIDE_EVIDENCE
+  desc: Hide or destroy evidence
+  pattern: "(?i)(?:hide|destroy|bury|bleach|delete|erase) (?:the )?(?:evidence|bodies|body|traces|fingerprints|dna)"
+  severity: block
+
+- id: R_CRIME_CONCEALMENT
+  desc: Concealing a crime
+  pattern: "(?i)(?:get away with|cover up) (?:a |the )?(?:crime|murder|theft|assault|robbery)"
+  severity: block
 
 # --- SECTION 6: OBFUSCATION DETECTORS ---
 

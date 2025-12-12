@@ -4,25 +4,22 @@ import os
 import numpy as np
 
 class RFAnomalyLayer:
-    def __init__(self, model_path='detector/models/random_forest_model.joblib', embedding_model_name='sentence-transformers/all-MiniLM-L6-v2'):
-        print("Initializing Random Forest Anomaly Layer...")
+    def __init__(self, model_path='detector/models/random_forest_model.joblib', embedding_model_name='sentence-transformers/all-MiniLM-L6-v2', embedder=None):
+        print("Initializing Random Forest Anomaly Layer...", flush=True)
         if not os.path.exists(model_path):
-            # Fallback or strict error depending on deployment
-            # In Docker, we bake the model, so strictly require it.
-            # But locally, we just trained it.
             raise FileNotFoundError(f"RF Model not found at {model_path}.")
             
         self.model = joblib.load(model_path)
-        # We re-use the sentence transformer. In main.py we might want to pass the existing instance to save RAM.
-        # But for cleaner encapsulation, we can load or accept it. 
-        # Ideally, accept it in check_prompt if possible, or load strictly.
-        # To match the main app's model:
-        try:
-            self.embedder = SentenceTransformer(embedding_model_name)
-        except:
-            # If model name differs or offline
-             self.embedder = None
-        print("RF Layer Ready.")
+        
+        # Use provided embedder to save memory, or load new one
+        if embedder:
+            self.embedder = embedder
+        else:
+            try:
+                self.embedder = SentenceTransformer(embedding_model_name)
+            except:
+                self.embedder = None
+        print("RF Layer Ready.", flush=True)
 
     def check_prompt(self, prompt, embedder=None):
         """

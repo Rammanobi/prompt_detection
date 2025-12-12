@@ -6,14 +6,11 @@ uvicorn[standard]
 scikit-learn
 google-cloud-firestore
 pydantic
-numpy
+numpy>=1.23
 tqdm
 requests
 pandas
 joblib
-google-generativeai
+google-generativeai>=0.8.3
 pinecone>=3.0.0
-sentence-transformers>=2.2.2
-numpy>=1.23
-sentence-transformers>=2.2.2
-numpy>=1.23
+firebase-admin

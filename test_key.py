@@ -1,18 +1,16 @@
 import google.generativeai as genai
 import os
 
-key = "AIzaSyCoJLz514xnzuN6avBCr2iDKPpN0dZ8gNA"
-genai.configure(api_key=key)
+key = "AIzaSyCa_1BLO7-a7r4mdMLw4KT61TzcHGTbWsQ"
+print(f"Testing Key: {key[:10]}... with gemini-2.0-flash-exp")
 
 try:
-    print("Listing available models...")
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            print(f"Found model: {m.name}")
-    
-    print("\nAttempting generation with 'gemini-pro' as fallback...")
-    model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content("Hello")
-    print(f"SUCCESS with gemini-pro: {response.text}")
+    genai.configure(api_key=key)
+    # Using the latest reliable model
+    model = genai.GenerativeModel('gemini-2.0-flash-exp')
+    print("Generating...")
+    response = model.generate_content("Reply with 'SUCCESS'")
+    print("FINAL RESULT:", response.text)
 except Exception as e:
-    print(f"FAILED: {e}")
+    print("\n--- FAILURE REASON ---")
+    print(e)

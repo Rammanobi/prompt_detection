@@ -18,10 +18,11 @@ if not ANTIG_KEY:
 app = FastAPI(title="Antigravity Gateway")
 
 class ChatReq(BaseModel):
-    user_id: str | None = ""
+    user_id: str | None = "gateway_user"
+    conversation_id: str | None = "default"
     prompt: str
 
-@app.post("/api/chat")
+@app.post("/api/check")
 def chat(req: ChatReq):
     # Here you would verify the user's JWT/session. For dev, optionally skip.
     # Example: token = request.headers.get("Authorization"); verify JWT...
@@ -30,9 +31,20 @@ def chat(req: ChatReq):
          raise HTTPException(status_code=500, detail="Gateway misconfigured")
 
     # Forward to detector using server-side secret
+    # Ensure URL has the path
+    target_url = DETECTOR_URL.rstrip('/') + "/api/check"
+    
     try:
-        resp = requests.post(DETECTOR_URL, json={"user_id": req.user_id, "prompt": req.prompt},
-                             headers={"x-api-key": ANTIG_KEY}, timeout=30) # Increase timeout for LLM Review
+        resp = requests.post(
+            target_url, 
+            json={
+                "user_id": req.user_id, 
+                "conversation_id": req.conversation_id,
+                "prompt": req.prompt
+            },
+            headers={"x-api-key": ANTIG_KEY}, 
+            timeout=50 # Increased timeout for LLM generation
+        )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Detector unreachable: {str(e)}")
 
@@ -49,9 +61,11 @@ def chat(req: ChatReq):
     decision = data.get("decision", "allow")
     
     # Gateway Enforcer
+    # Note: We now return the full object even for blocks so the frontend can display the 'System Explanation'
     if decision == "block":
-         block_msg = data.get("review_note") or "Request rejected by security policy."
-         raise HTTPException(status_code=400, detail=block_msg)
+         # Optionally log it here
+         print(f"Gateway: Blocking request for user {req.user_id}")
+         return data
     
     # If Flag, we might allow but warn? 
     # Current Detector Logic: If Triage says 'needs_human' for a flag, it upgrades to 'block'

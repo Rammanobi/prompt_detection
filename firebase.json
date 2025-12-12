@@ -1,0 +1,19 @@
+{
+    "hosting": {
+        "public": "static",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "/api/**",
+                "run": {
+                    "serviceId": "antigravity-layer1-gateway",
+                    "region": "us-central1"
+                }
+            }
+        ]
+    }
+}

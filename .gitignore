@@ -6,3 +6,6 @@ __pycache__/
 model_cache/
 tests/attacks/seed_attacks.json
 data/
+
+service-account.json
+.firebase/

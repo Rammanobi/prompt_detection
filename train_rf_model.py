@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sentence_transformers import SentenceTransformer
 import os
 from datasets import load_dataset 
+import json 
 
 MODEL_PATH = "detector/models/random_forest_model.joblib"
 EMBEDDINGS_FILE = "embeddings.npy"

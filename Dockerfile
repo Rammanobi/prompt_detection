@@ -23,6 +23,9 @@ ENV MODEL_NAME="/app/model_cache"
 # Force cache bust for index update
 COPY . /app
 
+# Re-train RF model to match container's scikit-learn version
+RUN python train_rf_model.py
+
 EXPOSE 8080
 
 CMD ["uvicorn", "detector.main:app", "--host", "0.0.0.0", "--port", "8080"]
